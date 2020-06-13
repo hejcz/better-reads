@@ -24,3 +24,13 @@ be found at [https://hexdocs.pm/hello](https://hexdocs.pm/hello).
 ```
 export GOODREADS_API_KEY=mykeytogoodreads
 ```
+
+**Examples**
+
+```
+LubimyCzytacFetcher.fetch(2) 
+|> Stream.each(fn _ -> :timer.sleep(1000) end) 
+|> Stream.map(& GoodreadsFetcher.fetch_by_isbn/1) 
+|> Stream.each(& IO.inspect/1) 
+|> Enum.to_list()
+```

@@ -1,9 +1,3 @@
 {
-    "sort": [
-        {
-            "average_rating": "desc"
-        },
-        "title.keyword"
-    ],
     "size": 5
 }

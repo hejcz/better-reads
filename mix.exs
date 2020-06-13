@@ -25,7 +25,9 @@ defmodule Hello.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:httpoison, "~> 1.6"},
       {:csv, "~> 2.3"},
-      {:elixir_xml_to_map, "~> 1.0"}
+      {:elixir_xml_to_map, "~> 1.0"},
+      {:floki, "~> 0.26.0"},
+      {:jason, "~> 1.2"}
     ]
   end
 end
