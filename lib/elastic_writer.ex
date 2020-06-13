@@ -1,4 +1,8 @@
 defmodule ElasticWriter do
+  @moduledoc """
+  Pushes passed books to local elasticsearch node.
+  """
+
   def index_books(books_to_index \\ []) do
     books_to_index
     |> Stream.map(

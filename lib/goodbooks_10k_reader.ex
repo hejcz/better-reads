@@ -1,4 +1,8 @@
 defmodule GoodBooks10KReader do
+  @moduledoc """
+  Reads and fixes books.csv from https://github.com/zygmuntz/goodbooks-10k repository.
+  """
+
   def stream(file \\ "/home/hejcz/work/goodbooks-10k/books.csv") do
     File.stream!(file)
     |> Stream.drop(1)

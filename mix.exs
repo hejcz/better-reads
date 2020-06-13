@@ -27,7 +27,8 @@ defmodule Hello.MixProject do
       {:csv, "~> 2.3"},
       {:elixir_xml_to_map, "~> 1.0"},
       {:floki, "~> 0.26.0"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 end

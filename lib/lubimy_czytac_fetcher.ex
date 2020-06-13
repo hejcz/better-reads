@@ -1,4 +1,9 @@
 defmodule LubimyCzytacFetcher do
+  @moduledoc """
+  Integration with https://lubimyczytac.pl/ service. It scraps html using internal API.
+  It fetches specified page of fantasy books list and follows links to fing their ISBN.
+  """
+
   @spec fetch(integer()) :: Stream.t()
   def fetch(page \\ 1) do
     {:ok, response} =
@@ -20,12 +25,9 @@ defmodule LubimyCzytacFetcher do
     |> Stream.filter(fn {attr_key, _} -> attr_key == "href" end)
     |> Stream.map(&elem(&1, 1))
     |> Stream.map(&("https://lubimyczytac.pl" <> &1))
-    # |> Stream.each(fn _ -> :timer.sleep(1000) end)
-    |> Stream.each(&IO.inspect/1)
     |> Stream.map(&find_isbn/1)
     |> Stream.map(&String.replace(&1, "-", ""))
     |> Stream.filter(&(&1 != "000000000000"))
-    |> Stream.each(&IO.inspect/1)
   end
 
   def find_isbn(url \\ "https://lubimyczytac.pl/ksiazka/203765/mechaniczny-ksiaze") do

@@ -1,4 +1,10 @@
 defmodule GoodreadsFetcher do
+  @moduledoc """
+  Integration with goodreads API (https://www.goodreads.com/api).
+  Client can retrieve book info from goodreads using this module.
+  Module returns only part of data received from API.
+  """
+
   def fetch_by_isbn(isbn \\ "9788366173316") do
     do_fetch("https://www.goodreads.com/book/isbn/#{isbn}?key=#{api_key()}")
   end
