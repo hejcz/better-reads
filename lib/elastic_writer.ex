@@ -2,7 +2,7 @@ defmodule ElasticWriter do
   def index_books(file \\ "/home/hejcz/work/goodbooks-10k/books.csv") do
     File.stream!(file)
     |> Stream.drop(1)
-    |> CSV.decode!
+    |> CSV.decode!()
     |> Stream.map(fn csv_row ->
       ~s({\"book_id\": #{Enum.at(csv_row, 0)},
        \"goodreads_book_id\": #{Enum.at(csv_row, 1)},
@@ -28,12 +28,14 @@ defmodule ElasticWriter do
        \"image_url\": \"#{Enum.at(csv_row, 21)}\",
        \"small_image_url\": \"#{Enum.at(csv_row, 22)}\"})
     end)
-    |> Stream.map(& HTTPoison.post("localhost:9200/books/_doc", &1, [{"content-type", "application/json"}]))
+    |> Stream.map(
+      &HTTPoison.post("localhost:9200/books/_doc", &1, [{"content-type", "application/json"}])
+    )
     |> Stream.filter(fn
       {:ok, %HTTPoison.Response{status_code: 201}} -> false
       _ -> true
     end)
-    |> Enum.each(& IO.inspect/1)
+    |> Enum.each(&IO.inspect/1)
   end
 
   # some titles have quotes inside
@@ -48,7 +50,8 @@ defmodule ElasticWriter do
   # isbn are treated are given as floats
   defp float_to_string_no_decimal_places(nil), do: "null"
   defp float_to_string_no_decimal_places(""), do: "null"
+
   defp float_to_string_no_decimal_places(float_as_str) do
-    "\"#{:erlang.float_to_binary(elem(Float.parse(float_as_str), 0), [decimals: 0])}\""
+    "\"#{:erlang.float_to_binary(elem(Float.parse(float_as_str), 0), decimals: 0)}\""
   end
 end
