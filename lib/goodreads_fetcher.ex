@@ -138,5 +138,5 @@ defmodule GoodreadsFetcher do
 
   defp author(%{"name" => name}), do: name
 
-  defp api_key(), do: System.get_env("GOODREADS_API_KEY")
+  defp api_key, do: System.get_env("GOODREADS_API_KEY")
 end
