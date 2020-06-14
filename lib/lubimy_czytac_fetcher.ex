@@ -4,7 +4,6 @@ defmodule LubimyCzytacFetcher do
   It fetches specified page of fantasy books list and follows links to fing their ISBN.
   """
 
-  @spec fetch(integer()) :: Stream.t()
   def fetch(page \\ 1) do
     {:ok, response} =
       HTTPoison.post(
@@ -20,19 +19,39 @@ defmodule LubimyCzytacFetcher do
     document = Floki.parse_document!(content)
 
     Floki.find(document, "a.authorAllBooks__singleTextTitle")
+    |> floki_a_to_book_url()
+  end
+
+  def find_isbn(url) do
+    {:ok, response} = HTTPoison.get(url)
+    [_, isbn] = Regex.run(~r/\"isbn\":\"([0-9-a-zA-Z]+)\"/, response.body)
+    fixed_isbn = String.replace(isbn, "-", "")
+
+    if fixed_isbn == "000000000000" do
+      {:error, "no isbn"}
+    else
+      {:ok, fixed_isbn}
+    end
+  end
+
+  def other_editions(url_to_some_edition \\ "https://lubimyczytac.pl/ksiazka/4821058/hobbit") do
+    [prefix, suffix] = String.split(url_to_some_edition, "ksiazka", parts: 2)
+    new_url = prefix <> "ksiazka/wydania" <> suffix
+    {:ok, response} = HTTPoison.get(new_url)
+    # some php-style comments in html result in Floki failure
+    fixed_body = Regex.replace(~r/\?\/\*[^*]+\*\/\?>/, response.body, "")
+    document = Floki.parse_document!(fixed_body)
+
+    Floki.find(document, "#editionsList a.authorAllBooks__singleTextTitle")
+    |> floki_a_to_book_url()
+  end
+
+  defp floki_a_to_book_url(links) do
+    links
     |> Stream.map(&elem(&1, 1))
-    |> Stream.flat_map(fn x -> x end)
+    |> Stream.flat_map(& &1)
     |> Stream.filter(fn {attr_key, _} -> attr_key == "href" end)
     |> Stream.map(&elem(&1, 1))
     |> Stream.map(&("https://lubimyczytac.pl" <> &1))
-    |> Stream.map(&find_isbn/1)
-    |> Stream.map(&String.replace(&1, "-", ""))
-    |> Stream.filter(&(&1 != "000000000000"))
-  end
-
-  def find_isbn(url \\ "https://lubimyczytac.pl/ksiazka/203765/mechaniczny-ksiaze") do
-    {:ok, response} = HTTPoison.get(url)
-    [_, isbn] = Regex.run(~r/\"isbn\":\"([0-9-a-zA-Z]+)\"/, response.body)
-    isbn
   end
 end
