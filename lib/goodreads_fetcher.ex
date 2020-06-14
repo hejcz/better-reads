@@ -5,15 +5,15 @@ defmodule GoodreadsFetcher do
   Module returns only part of data received from API.
   """
 
-  def fetch_by_isbn(isbn \\ "9788366173316") do
-    do_fetch("https://www.goodreads.com/book/isbn/#{isbn}?key=#{api_key()}")
+  def fetch_by_isbn(isbn \\ "9788366173316", fetch_best \\ false) do
+    do_fetch("https://www.goodreads.com/book/isbn/#{isbn}?key=#{api_key()}", fetch_best)
   end
 
-  def fetch_by_id(goodreads_id \\ "34841072") do
-    do_fetch("https://www.goodreads.com/book/show/#{goodreads_id}?key=#{api_key()}")
+  def fetch_by_id(goodreads_id \\ "34841072", fetch_best \\ false) do
+    do_fetch("https://www.goodreads.com/book/show/#{goodreads_id}?key=#{api_key()}", fetch_best)
   end
 
-  defp do_fetch(fetch_url) do
+  defp do_fetch(fetch_url, fetch_best) do
     case HTTPoison.get(fetch_url) do
       {:ok, %HTTPoison.Response{body: body, status_code: 200}} ->
         %{
@@ -59,40 +59,44 @@ defmodule GoodreadsFetcher do
           }
         } = XmlToMap.naive_map(body)
 
-        [fives, fours, threes, twos, ones, _] =
-          String.split(rating_dist, "|")
-          |> Stream.map(&String.split(&1, ":"))
-          |> Stream.map(fn [_, count] -> count end)
-          |> Enum.to_list()
+        if id == best_book_id || !fetch_best do
+          [fives, fours, threes, twos, ones, _] =
+            String.split(rating_dist, "|")
+            |> Stream.map(&String.split(&1, ":"))
+            |> Stream.map(fn [_, count] -> count end)
+            |> Enum.to_list()
 
-        {:ok,
-         %{
-           book_id: nil,
-           goodreads_book_id: parse_int!(id),
-           best_book_id: parse_int!(nil_if_empty(best_book_id)),
-           work_id: parse_int!(nil_if_empty(work_id)),
-           books_count: parse_int!(nil_if_empty(books_count)),
-           isbn: isbn,
-           isbn13: isbn13,
-           authors: author(authors),
-           original_publication_year: parse_int!(nil_if_empty(original_publication_year)),
-           original_title: nil_if_empty(original_title),
-           title: title,
-           language_code: language_code,
-           average_rating: parse_float!(average_rating),
-           ratings_count: parse_int!(ratings_count),
-           work_ratings_count: parse_int!(nil_if_empty(work_ratings_count)),
-           work_text_reviews_count: parse_int!(nil_if_empty(text_reviews_count)),
-           ratings_1: parse_int!(ones),
-           ratings_2: parse_int!(twos),
-           ratings_3: parse_int!(threes),
-           ratings_4: parse_int!(fours),
-           ratings_5: parse_int!(fives),
-           image_url: nil_if_empty(image_url),
-           small_image_url: nil_if_empty(small_image_url),
-           num_pages: parse_int!(nil_if_empty(num_pages)),
-           description: process_description(nil_if_empty(description))
-         }}
+          {:ok,
+           %{
+             book_id: nil,
+             goodreads_book_id: parse_int!(id),
+             best_book_id: parse_int!(nil_if_empty(best_book_id)),
+             work_id: parse_int!(nil_if_empty(work_id)),
+             books_count: parse_int!(nil_if_empty(books_count)),
+             isbn: isbn,
+             isbn13: isbn13,
+             authors: author(authors),
+             original_publication_year: parse_int!(nil_if_empty(original_publication_year)),
+             original_title: nil_if_empty(original_title),
+             title: title,
+             language_code: language_code,
+             average_rating: parse_float!(average_rating),
+             ratings_count: parse_int!(ratings_count),
+             work_ratings_count: parse_int!(nil_if_empty(work_ratings_count)),
+             work_text_reviews_count: parse_int!(nil_if_empty(text_reviews_count)),
+             ratings_1: parse_int!(ones),
+             ratings_2: parse_int!(twos),
+             ratings_3: parse_int!(threes),
+             ratings_4: parse_int!(fours),
+             ratings_5: parse_int!(fives),
+             image_url: nil_if_empty(image_url),
+             small_image_url: nil_if_empty(small_image_url),
+             num_pages: parse_int!(nil_if_empty(num_pages)),
+             description: process_description(nil_if_empty(description))
+           }}
+        else
+          fetch_by_id(best_book_id)
+        end
 
       _ ->
         {:error, "book can't be fetched"}

@@ -6,13 +6,14 @@ defmodule ExamplePipe do
 
   def from_lubimy_czytac_with_other_editions_fallback(page) do
     LubimyCzytacFetcher.fetch(page)
+    |> Stream.each(&IO.inspect/1)
     |> Stream.map(&fetch_book_info/1)
-    |> Enum.to_list()
+    |> Enum.each(&IO.inspect/1)
   end
 
   defp fetch_book_info(lubimy_czytac_book_url) when is_binary(lubimy_czytac_book_url) do
     with {:ok, isbn} <- LubimyCzytacFetcher.find_isbn(lubimy_czytac_book_url),
-         {:ok, book_info} <- GoodreadsFetcher.fetch_by_isbn(isbn) do
+         {:ok, book_info} <- GoodreadsFetcher.fetch_by_isbn(isbn, true) do
       book_info
     else
       _ ->
@@ -28,8 +29,10 @@ defmodule ExamplePipe do
   end
 
   defp fetch_book_info([h | t]) do
+    IO.inspect(h)
+
     with {:ok, isbn} <- LubimyCzytacFetcher.find_isbn(h),
-         {:ok, book_info} <- GoodreadsFetcher.fetch_by_isbn(isbn) do
+         {:ok, book_info} <- GoodreadsFetcher.fetch_by_isbn(isbn, true) do
       book_info
     else
       _ ->
